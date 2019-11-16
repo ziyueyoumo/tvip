@@ -1,0 +1,1 @@
+g++ -fvisibility=hidden -shared -fPIC -Wl,-z,relro,-z,now -O3 -g -std=gnu++17 -I ../base/ -I ../../include vip.cpp -o ../../out/vip.so
