@@ -97,7 +97,13 @@ void sendVIPMenu(ServerPlayer* sp) {
                 sendTPChoose((ServerPlayer*)x);
             }
         );
-        gui_Buttons(sp,"VIP功能菜单，购买VIP请联系服主。","VIP功能",lis);
+        string wel;
+        if(isVIP(name)) {
+            wel="VIP玩家:"+name+"，欢迎使用VIP功能。";
+        } else {
+            wel="普通玩家:"+name+"，看起来你还不是VIP，请联系服主开通VIP功能。";
+        }
+        gui_Buttons(sp,wel,"VIP功能",lis);
 }
 
 static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &outp) {
@@ -177,7 +183,7 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
 
 void vip_init(std::list<string>& modlist) {
     load();
-    printf("[VIP] Plugin loaded, Version: 1.0.2\n");
+    printf("[TVIP] Plugin loaded, Version: 1.0.2\n");
     reg_player_join(join);
     reg_chat(chat);
     register_cmd("vip",(void*)oncmd,"VIP命令");
