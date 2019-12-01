@@ -59,7 +59,7 @@ void join(ServerPlayer* pl) {//VIP玩家登录提醒
 static bool chat(ServerPlayer const* pl,string& c) {
     string name=pl->getName();
     if(isVIP(name)) {
-        string chatmsg="§6§l"+chatmsg;//给VIP的聊天信息加上颜色
+        c="§b§l"+c;//给VIP的聊天信息加上颜色
     }
     return 1;
 }
