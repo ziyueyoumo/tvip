@@ -8,6 +8,7 @@
 #include"seral.hpp"
 #include<dlfcn.h>
 #include<cstdlib>
+#include"../gui/gui.h"
 using std::string;
 using std::to_string;
 using std::unordered_map;
@@ -58,17 +59,25 @@ void join(ServerPlayer* pl) {//VIP玩家登录提醒
 static bool chat(ServerPlayer const* pl,string& c) {
     string name=pl->getName();
     if(isVIP(name)) {
-        string chatmsg=c;
-        c="§6[VIP]§r >> "+chatmsg;
+        string chatmsg="§6§l"+chatmsg;//给VIP的聊天信息加上颜色
     }
     return 1;
+}
+
+void sendTPChoose(ServerPlayer* sp){//强制TP菜单
+    string name=sp->getName();
+    gui_ChoosePlayer(sp,"请选择目标玩家","VIP强制TP",[name](const string& dest) {
+        auto xx=getSrvLevel()->getPlayer(name);
+            if(xx)
+            runcmdAs("vip tp "+SafeStr(dest),xx);
+    });
 }
 
 static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &outp) {
     ARGSZ(1)
     string prefix="§a[VIP] ";//插件消息前缀
     if(a[0]=="help") {
-        outp.error("§a---VIP help---\n/vip time 数值(如day night 114514) ——调整游戏时间\n/vip tp 玩家 ——直接传送到目标玩家身边\n---------");
+        outp.error("§a---VIP help---\n/vip gui ——呼出GUI菜单\n/vip time 数值(如day night 114514) ——调整游戏时间\n/vip tp 玩家 ——直接传送到目标玩家身边\n---------");
         return;
     }
     if(a[0]=="query") {
@@ -82,7 +91,7 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
         
     }
     if(a[0]=="version") {
-        outp.error(prefix+"Version:1.0.1 Author:thirteenc13\nhttps://github.com/thirteenc13/bdlng-VIP");
+        outp.error(prefix+"Version:1.0.2 Author:thirteenc13\nhttps://github.com/thirteenc13/bdlng-VIP");
     }
     if(a[0]=="add") {//增加新的VIP
         ARGSZ(2)
@@ -108,6 +117,32 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
         outp.error("您没有权限使用VIP功能，请向服主赞助以获取VIP");
         return;
     }
+    if(a[0]=="gui") {
+        string name=b.getName();
+        auto lis=new list<pair<string,std::function<void()> > >();
+        lis->emplace_back(
+            "调整时间到晚上",[name]{
+                auto x=getSrvLevel()->getPlayer(name);
+                if(x)
+                    runcmdAs("vip time night",x);
+            }
+        );
+        lis->emplace_back(
+            "调整时间到早上",[name]{
+                auto x=getSrvLevel()->getPlayer(name);
+                if(x)
+                    runcmdAs("vip time day",x);
+            }
+        );
+        lis->emplace_back(
+            "TP到指定玩家",[name]{
+                auto x=getSrvLevel()->getPlayer(name);
+                if(x)
+                sendTPChoose((ServerPlayer*)x);
+            }
+        );
+        gui_Buttons((ServerPlayer*)b.getEntity(),"VIP功能菜单，购买VIP请联系服主。","VIP功能",lis);
+    }
     if(a[0]=="time") {//设置时间
         ARGSZ(2)
         if(runcmd(string("time set "+a[1])).isSuccess()) {
@@ -131,9 +166,9 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
 
 void vip_init(std::list<string>& modlist) {
     load();
-    printf("[VIP] Plugin loaded, Version: 1.0.1\n");
+    printf("[VIP] Plugin loaded, Version: 1.0.2\n");
     reg_player_join(join);
     reg_chat(chat);
-    register_cmd("vip",(void*)oncmd,"VIP commands");
+    register_cmd("vip",(void*)oncmd,"VIP命令");
     load_helper(modlist);
 }
