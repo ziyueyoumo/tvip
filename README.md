@@ -1,6 +1,6 @@
 # tvip
 VIP plugin for [bdlauncher](https://github.com/Sysca11/bdlauncher)  
-Language: Chinese
+Language: Chinese  
 Usage:   
 view help:`/vip help`  
 open gui menu:`/vip gui`  
