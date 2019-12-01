@@ -73,9 +73,42 @@ void sendTPChoose(ServerPlayer* sp){//强制TP菜单
     });
 }
 
+void sendVIPMenu(ServerPlayer* sp) {
+    string name=sp->getName();
+        auto lis=new list<pair<string,std::function<void()> > >();
+        lis->emplace_back(
+            "调整时间到晚上",[name]{
+                auto x=getSrvLevel()->getPlayer(name);
+                if(x)
+                    runcmdAs("vip time night",x);
+            }
+        );
+        lis->emplace_back(
+            "调整时间到早上",[name]{
+                auto x=getSrvLevel()->getPlayer(name);
+                if(x)
+                    runcmdAs("vip time day",x);
+            }
+        );
+        lis->emplace_back(
+            "TP到指定玩家",[name]{
+                auto x=getSrvLevel()->getPlayer(name);
+                if(x)
+                sendTPChoose((ServerPlayer*)x);
+            }
+        );
+        gui_Buttons(sp,"VIP功能菜单，购买VIP请联系服主。","VIP功能",lis);
+}
+
 static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &outp) {
-    ARGSZ(1)
+    ARGSZ(0)
     string prefix="§a[VIP] ";//插件消息前缀
+    string name=b.getName();
+    if(a.size()==0) {
+        auto x=getSrvLevel()->getPlayer(name);
+        sendVIPMenu(x);
+        return;
+    }
     if(a[0]=="help") {
         outp.error("§a---VIP help---\n/vip gui ——呼出GUI菜单\n/vip time 数值(如day night 114514) ——调整游戏时间\n/vip tp 玩家 ——直接传送到目标玩家身边\n---------");
         return;
@@ -118,30 +151,8 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
         return;
     }
     if(a[0]=="gui") {
-        string name=b.getName();
-        auto lis=new list<pair<string,std::function<void()> > >();
-        lis->emplace_back(
-            "调整时间到晚上",[name]{
-                auto x=getSrvLevel()->getPlayer(name);
-                if(x)
-                    runcmdAs("vip time night",x);
-            }
-        );
-        lis->emplace_back(
-            "调整时间到早上",[name]{
-                auto x=getSrvLevel()->getPlayer(name);
-                if(x)
-                    runcmdAs("vip time day",x);
-            }
-        );
-        lis->emplace_back(
-            "TP到指定玩家",[name]{
-                auto x=getSrvLevel()->getPlayer(name);
-                if(x)
-                sendTPChoose((ServerPlayer*)x);
-            }
-        );
-        gui_Buttons((ServerPlayer*)b.getEntity(),"VIP功能菜单，购买VIP请联系服主。","VIP功能",lis);
+        auto x=getSrvLevel()->getPlayer(name);
+        sendVIPMenu(x);
     }
     if(a[0]=="time") {//设置时间
         ARGSZ(2)
