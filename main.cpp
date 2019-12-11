@@ -4,8 +4,8 @@
 #include<string>
 #include<algorithm>
 #include"../cmdhelper.h"
-#include"base.h"
-#include"seral.hpp"
+#include"../base/base.h"
+#include"../serial/seral.hpp"
 #include<dlfcn.h>
 #include<cstdlib>
 #include"../gui/gui.h"
@@ -14,35 +14,24 @@ using std::to_string;
 using std::unordered_map;
 
 extern "C" {
-    BDL_EXPORT void vip_init(std::list<string>& modlist);
+    BDL_EXPORT void mod_init(std::list<string>& modlist);
 }
 
 extern void load_helper(std::list<string>& modlist);
-static unordered_map<string,int> viplist;
-static void save() {
-    char* bf;
-    int sz=maptomem(viplist,&bf,h_str2str,h_int2str);
-    mem2file("data/vip/vip.db",bf,sz);
-}
-static void load() {
-    mkdir("data",S_IRWXU);
-    mkdir("data/vip",S_IRWXU);
-    char* buf;
-    int sz;
-    struct stat tmp;
-    if(stat("data/vip/vip.db",&tmp)==-1) {
-        save();
-    }
-    file2mem("data/vip/vip.db",&buf,sz);
-    memtomap(viplist,buf,h_str2str_load,h_str2int);
-}
+
+LDBImpl vip_data("data/new/vip");
 
 bool isVIP(const string& name) {
-    if(viplist.count(name)) {
-        int tm=viplist[name];
-        if(tm==1) return 1;//是
+    string val;
+    auto succ=vip_data.Get(name,val);
+    if(succ){
+        if(val=="1"){
+            return 1;//是
+        }  
+        return 0;//否
+    } else {
+        return 0;
     }
-    return 0;//否
 }
 
 static void sendMessage(const string& msg) {
@@ -135,8 +124,7 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
     if(a[0]=="add") {//增加新的VIP
         ARGSZ(2)
         if((int)b.getPermissionsLevel()>0) {
-            viplist[a[1]]=1;
-            save();
+            vip_data.Put(a[1],"1");
             outp.success(prefix+"增加了VIP用户 "+a[1]);
             sendMessage("恭喜玩家 "+a[1]+" 开通了VIP！");
             return;
@@ -145,8 +133,7 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
     if(a[0]=="del") {//删除VIP
         ARGSZ(2)
         if((int)b.getPermissionsLevel()>0) {
-            viplist[a[1]]=0;
-            save();
+            vip_data.Del(a[1]);
             outp.success(prefix+"删除了VIP用户 "+a[1]);
             return;
         }
@@ -181,11 +168,24 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
     }
 }
 
-void vip_init(std::list<string>& modlist) {
-    load();
+/*
+static void oncmd2(std::vector<string>& a,CommandOrigin const & b,CommandOutput &outp) {
+    ARGSZ(1)
+    string val;
+    auto succ=vip_data.Get(a[0],val);
+    if(succ) {
+        outp.success("Pl: "+a[0]+" Db: "+val);
+    } else {
+        outp.error("Failure");
+    }
+}
+*/
+
+void mod_init(std::list<string>& modlist) {
     printf("[TVIP] Plugin loaded, Version: 1.0.2\n");
     reg_player_join(join);
     reg_chat(chat);
     register_cmd("vip",(void*)oncmd,"VIP命令");
+    //register_cmd("vipdebug",(void*)oncmd2,"VIP Debug");
     load_helper(modlist);
 }
