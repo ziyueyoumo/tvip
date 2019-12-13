@@ -19,16 +19,16 @@ extern "C" {
 
 extern void load_helper(std::list<string>& modlist);
 
-LDBImpl vip_data("data/new/vip");
+LDBImpl vip_data("data_v2/tvip");
 
 bool isVIP(const string& name) {
     string val;
     auto succ=vip_data.Get(name,val);
     if(succ){
         if(val=="1"){
-            return 1;//是
+            return 1;
         }  
-        return 0;//否
+        return 0;
     } else {
         return 0;
     }
@@ -38,24 +38,24 @@ static void sendMessage(const string& msg) {
     runcmd(string("tellraw @a {\"rawtext\":[{\"text\":\"§aVIP >> "+msg+"\"}]}"));
 }
 
-void join(ServerPlayer* pl) {//VIP玩家登录提醒
+void join(ServerPlayer* pl) {//VIP user login announcement
     string nm=pl->getName();
     if(isVIP(nm)) {
-        sendMessage("尊贵的VIP玩家 "+nm+" 加入了游戏");
+        sendMessage("VIP user "+nm+" joined the game");
     }
 }
 
 static bool chat(ServerPlayer const* pl,string& c) {
     string name=pl->getName();
     if(isVIP(name)) {
-        c="§b§l"+c;//给VIP的聊天信息加上颜色
+        c="§b§l"+c;//Make VIP players' chat messages colorful
     }
     return 1;
 }
 
-void sendTPChoose(ServerPlayer* sp){//强制TP菜单
+void sendTPChoose(ServerPlayer* sp){//Teleport to target player menu
     string name=sp->getName();
-    gui_ChoosePlayer(sp,"请选择目标玩家","VIP强制TP",[name](const string& dest) {
+    gui_ChoosePlayer(sp,"Please select a target player","Teleport to target player",[name](const string& dest) {
         auto xx=getSrvLevel()->getPlayer(name);
             if(xx)
             runcmdAs("vip tp "+SafeStr(dest),xx);
@@ -66,21 +66,21 @@ void sendVIPMenu(ServerPlayer* sp) {
     string name=sp->getName();
         auto lis=new list<pair<string,std::function<void()> > >();
         lis->emplace_back(
-            "调整时间到晚上",[name]{
+            "Adjust time to night",[name]{
                 auto x=getSrvLevel()->getPlayer(name);
                 if(x)
                     runcmdAs("vip time night",x);
             }
         );
         lis->emplace_back(
-            "调整时间到早上",[name]{
+            "Adjust time to morning",[name]{
                 auto x=getSrvLevel()->getPlayer(name);
                 if(x)
                     runcmdAs("vip time day",x);
             }
         );
         lis->emplace_back(
-            "TP到指定玩家",[name]{
+            "Teleport to target player",[name]{
                 auto x=getSrvLevel()->getPlayer(name);
                 if(x)
                 sendTPChoose((ServerPlayer*)x);
@@ -88,16 +88,16 @@ void sendVIPMenu(ServerPlayer* sp) {
         );
         string wel;
         if(isVIP(name)) {
-            wel="VIP玩家:"+name+"，欢迎使用VIP功能。";
+            wel="VIP user: "+name+"\nWelcome to VIP function.";
         } else {
-            wel="普通玩家:"+name+"，看起来你还不是VIP，请联系服主开通VIP功能。";
+            wel="Common user: "+name+"\n§cYou are not a VIP user";
         }
-        gui_Buttons(sp,wel,"VIP功能",lis);
+        gui_Buttons(sp,wel,"VIP menu",lis);
 }
 
 static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &outp) {
     ARGSZ(0)
-    string prefix="§a[VIP] ";//插件消息前缀
+    string prefix="§a[VIP] ";
     string name=b.getName();
     if(a.size()==0) {
         auto x=getSrvLevel()->getPlayer(name);
@@ -105,66 +105,68 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
         return;
     }
     if(a[0]=="help") {
-        outp.error("§a---VIP help---\n/vip gui ——呼出GUI菜单\n/vip time 数值(如day night 114514) ——调整游戏时间\n/vip tp 玩家 ——直接传送到目标玩家身边\n---------");
+        outp.error("§a---VIP help---\n/vip gui ——Open the GUI menu\n/vip time [time]](such as: day,night,114514) ——Adjust game time\n/vip tp [player]] ——Teleport yourself to the target player\n---------");
         return;
     }
+    /*
     if(a[0]=="query") {
         ARGSZ(2)
         if(isVIP(a[1])) {
-            outp.success(prefix+"该玩家是VIP用户");
+            outp.success(prefix+"The player is VIP user.");
         } else {
-            outp.error(prefix+"该玩家不是VIP用户");
+            outp.error(prefix+"The player is not VIP user.");
         }
         return;
         
     }
+    */
     if(a[0]=="version") {
         outp.error(prefix+"Version:1.0.2 Author:thirteenc13\nhttps://github.com/thirteenc13/bdlng-VIP");
     }
-    if(a[0]=="add") {//增加新的VIP
+    if(a[0]=="add") {//Add VIP
         ARGSZ(2)
         if((int)b.getPermissionsLevel()>0) {
             vip_data.Put(a[1],"1");
-            outp.success(prefix+"增加了VIP用户 "+a[1]);
-            sendMessage("恭喜玩家 "+a[1]+" 开通了VIP！");
+            outp.success(prefix+"Added VIP user "+a[1]);
+            sendMessage(a[1]+" got VIP!");
             return;
         }
     }
-    if(a[0]=="del") {//删除VIP
+    if(a[0]=="del") {//Delete VIP
         ARGSZ(2)
         if((int)b.getPermissionsLevel()>0) {
             vip_data.Del(a[1]);
-            outp.success(prefix+"删除了VIP用户 "+a[1]);
+            outp.success(prefix+"Deleted VIP user "+a[1]);
             return;
         }
     }
 
-    if(isVIP(b.getName())==false) {//判断玩家是否是VIP，否则return
-        outp.error("您没有权限使用VIP功能，请向服主赞助以获取VIP");
+    if(isVIP(b.getName())==false) {//Determine if the player is VIP
+        outp.error("You have no VIP permission.");
         return;
     }
     if(a[0]=="gui") {
         auto x=getSrvLevel()->getPlayer(name);
         sendVIPMenu(x);
     }
-    if(a[0]=="time") {//设置时间
+    if(a[0]=="time") {//Set time
         ARGSZ(2)
         if(runcmd(string("time set "+a[1])).isSuccess()) {
-            outp.success(prefix+"成功将时间设置为 "+a[1]);
+            outp.success(prefix+"Set time to night "+a[1]);
         } else {
-            outp.error(prefix+"时间设置失败，请检查命令");
+            outp.error(prefix+"Setting failed, please check the command.");
         }
     }
-    if(a[0]=="tp") {//VIP强制tp
+    if(a[0]=="tp") {//VIP teleport
         ARGSZ(2)
         Player* pl=NULL;
         pl=getplayer_byname(a[1]);
         if(pl==NULL) {
-            outp.error(prefix+"目标玩家不在线");
+            outp.error(prefix+"Target player is offline.");
             return;
         }
         TeleportA(*pl,b.getWorldPosition(), {b.getEntity()->getDimensionId()});
-        outp.success(prefix+"已传送到玩家 "+a[1]+" 身边");
+        outp.success(prefix+"Teleported you to "+a[1]);
     }
 }
 
@@ -185,7 +187,7 @@ void mod_init(std::list<string>& modlist) {
     printf("[TVIP] Plugin loaded, Version: 1.0.2\n");
     reg_player_join(join);
     reg_chat(chat);
-    register_cmd("vip",(void*)oncmd,"VIP命令");
+    register_cmd("vip",(void*)oncmd,"VIP commands");
     //register_cmd("vipdebug",(void*)oncmd2,"VIP Debug");
     load_helper(modlist);
 }
