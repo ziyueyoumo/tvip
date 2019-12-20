@@ -34,14 +34,10 @@ bool isVIP(const string& name) {
     }
 }
 
-static void sendMessage(const string& msg) {
-    runcmd(string("tellraw @a {\"rawtext\":[{\"text\":\"§aVIP >> "+msg+"\"}]}"));
-}
-
 void join(ServerPlayer* pl) {//VIP user login announcement
     string nm=pl->getName();
     if(isVIP(nm)) {
-        sendMessage("VIP user "+nm+" joined the game");
+        runcmd(string("say §bVIP user "+nm+" joined the game"));
     }
 }
 
@@ -104,15 +100,12 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
         sendVIPMenu(x);
         return;
     }
-    if(a[0]=="v") {
-        outp.error(prefix+"Version:1.0.3 Author:thirteenc13\nhttps://github.com/thirteenc13/tvip");
-    }
     if(a[0]=="add") {//Add VIP
         ARGSZ(2)
         if((int)b.getPermissionsLevel()>0) {
             vip_data.Put(a[1],"1");
             outp.success(prefix+"Added VIP user "+a[1]);
-            sendMessage(a[1]+" got VIP!");
+            runcmd(string("say §b"+a[1]+" got VIP!"));
             return;
         }
     }
@@ -149,7 +142,7 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
             outp.error(prefix+"Target player is offline.");
             return;
         }
-        TeleportA(*getplayer_byname(b.getName()),pl->getPos(),{pl->getDimensionId()});
+        TeleportA(*getplayer_byname(b.getName()),pl->getPos(),{b.getEntity()->getDimensionId()});
         outp.success(prefix+"Teleported you to "+a[1]);
     }
 }
