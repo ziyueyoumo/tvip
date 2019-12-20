@@ -129,7 +129,7 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
     if(a[0]=="time") {//Set time
         ARGSZ(2)
         if(runcmd(string("time set "+a[1])).isSuccess()) {
-            outp.success(prefix+"Set time to night "+a[1]);
+            outp.success(prefix+"Set time to "+a[1]);
         } else {
             outp.error(prefix+"Setting failed, please check the command.");
         }
