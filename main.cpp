@@ -104,24 +104,8 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
         sendVIPMenu(x);
         return;
     }
-    if(a[0]=="help") {
-        outp.error("§a---VIP help---\n/vip gui ——Open the GUI menu\n/vip time [time]](such as: day,night,114514) ——Adjust game time\n/vip tp [player]] ——Teleport yourself to the target player\n---------");
-        return;
-    }
-    /*
-    if(a[0]=="query") {
-        ARGSZ(2)
-        if(isVIP(a[1])) {
-            outp.success(prefix+"The player is VIP user.");
-        } else {
-            outp.error(prefix+"The player is not VIP user.");
-        }
-        return;
-        
-    }
-    */
-    if(a[0]=="version") {
-        outp.error(prefix+"Version:1.0.2 Author:thirteenc13\nhttps://github.com/thirteenc13/bdlng-VIP");
+    if(a[0]=="v") {
+        outp.error(prefix+"Version:1.0.3 Author:thirteenc13\nhttps://github.com/thirteenc13/tvip");
     }
     if(a[0]=="add") {//Add VIP
         ARGSZ(2)
@@ -165,7 +149,7 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
             outp.error(prefix+"Target player is offline.");
             return;
         }
-        TeleportA(*pl,b.getWorldPosition(), {b.getEntity()->getDimensionId()});
+        TeleportA(*getplayer_byname(b.getName()),pl->getPos(),{pl->getDimensionId()});
         outp.success(prefix+"Teleported you to "+a[1]);
     }
 }
@@ -184,7 +168,7 @@ static void oncmd2(std::vector<string>& a,CommandOrigin const & b,CommandOutput 
 */
 
 void mod_init(std::list<string>& modlist) {
-    printf("[TVIP] Plugin loaded, Version: 1.0.2\n");
+    printf("[TVIP] Plugin loaded, Version: 1.0.3\n");
     reg_player_join(join);
     reg_chat(chat);
     register_cmd("vip",(void*)oncmd,"VIP commands");
