@@ -149,7 +149,7 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
 
 static void checkVIPcmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &outp) {
     ARGSZ(1)
-    if(isVIP(a[1])) {
+    if(isVIP(a[0])) {
         outp.success("true");
     } else {
         outp.error("false");
