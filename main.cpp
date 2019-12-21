@@ -147,6 +147,15 @@ static void oncmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &
     }
 }
 
+static void checkVIPcmd(std::vector<string>& a,CommandOrigin const & b,CommandOutput &outp) {
+    ARGSZ(1)
+    if(isVIP(a[1])) {
+        outp.success("true");
+    } else {
+        outp.error("false");
+    }
+}
+
 /*
 static void oncmd2(std::vector<string>& a,CommandOrigin const & b,CommandOutput &outp) {
     ARGSZ(1)
@@ -166,5 +175,6 @@ void mod_init(std::list<string>& modlist) {
     reg_chat(chat);
     register_cmd("vip",(void*)oncmd,"VIP commands");
     //register_cmd("vipdebug",(void*)oncmd2,"VIP Debug");
+    register_cmd("vipcheck",(void*)checkVIPcmd,"check VIP",1);
     load_helper(modlist);
 }
